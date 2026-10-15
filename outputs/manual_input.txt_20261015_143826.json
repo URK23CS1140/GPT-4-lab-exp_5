@@ -1,0 +1,56 @@
+{
+  "analysis": {
+    "document_type": "Employment Agreement",
+    "parties": [
+      "ABC Technologies Pvt. Ltd.",
+      "Mr. John Smith"
+    ],
+    "purpose": "to outline the terms and conditions of employment for John Smith as a Senior Software Engineer with ABC Technologies Pvt. Ltd.",
+    "duration": "12 months, commencing from the Start Date of 01-07-2026",
+    "obligations": [
+      "The Employee shall perform all assigned duties diligently, efficiently, and in compliance with company policies and instructions given by management.",
+      "The Employee must maintain strict confidentiality regarding all company trade secrets, source code, client records, and proprietary data."
+    ],
+    "rights": [
+      "Any inventions, designs, code, software, documentation, or intellectual property created, developed, or conceived by the Employee during the course of employment shall belong solely and exclusively to ABC Technologies Pvt. Ltd."
+    ],
+    "payment_terms": "The Company shall pay the Employee a monthly salary of ₹50,000 (Fifty Thousand Rupees), payable on or before the last working day of each calendar month via direct bank transfer, subject to statutory tax deductions.",
+    "termination": "Either party may terminate this Agreement by providing 30 days written notice to the other party. The Company reserves the right to terminate employment immediately without notice in the event of gross misconduct, breach of confidentiality, or fraud.",
+    "confidentiality": "The Employee agrees that during and after the period of employment, they shall not disclose, publish, or disseminate any proprietary or confidential information belonging to the Company or its clients to any unauthorized third party without prior written authorization.",
+    "important_dates": [
+      "Effective / Start Date: 01-07-2026",
+      "Execution Date or Expiration Date: 01-07-2027"
+    ],
+    "governing_law": "Applicable laws of India. Any disputes arising out of or in connection with this Agreement shall be referred to arbitration in Bangalore in accordance with the Arbitration and Conciliation Act.",
+    "key_clauses": [
+      "Confidentiality",
+      "Termination",
+      "Intellectual Property",
+      "Payment Terms",
+      "Dispute Resolution"
+    ],
+    "summary": "This Employment Agreement outlines the terms and conditions of employment for John Smith as a Senior Software Engineer with ABC Technologies Pvt. Ltd., including his duties, confidentiality obligations, payment terms, and termination conditions.",
+    "inference_engine": "Local Ollama (llama3.2:latest)",
+    "chunks_processed": 1
+  },
+  "document_stats": {
+    "filename": "manual_input.txt",
+    "document_type_hint": "Employment Agreement",
+    "character_count": 2861,
+    "character_count_no_spaces": 2423,
+    "word_count": 426,
+    "paragraph_count": 14,
+    "line_count": 42,
+    "approx_page_count": 1
+  },
+  "dashboard_metrics": {
+    "word_count": 426,
+    "character_count": 2861,
+    "approx_pages": 1,
+    "parties_count": 2,
+    "obligations_count": 2,
+    "key_clauses_count": 5,
+    "important_dates_count": 2,
+    "document_type": "Employment Agreement"
+  }
+}

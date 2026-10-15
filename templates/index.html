@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automated Legal Document Analyzer | Experiment 5</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">⚖️</div>
+        <div>
+          <h1 class="header-title">Automated Legal Document Analyzer</h1>
+          <p class="header-subtitle">AI-powered analysis of legal documents using local LLM inference (Llama 3.2)</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-pill {% if ollama_running %}status-online{% else %}status-offline{% endif %}" id="ollamaStatusPill">
+          <span class="status-dot"></span>
+          <span id="ollamaStatusText">
+            {% if ollama_running %}
+              Ollama: {{ default_model }}
+            {% else %}
+              Ollama Offline (Deterministic Fallback)
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Notice banner for Ollama status -->
+    <div class="notice-banner" id="ollamaNotice" style="{% if ollama_running %}display: none;{% endif %}">
+      <div class="notice-icon">ℹ️</div>
+      <div class="notice-text">
+        <strong>Local Ollama Service Status:</strong>
+        <span id="noticeMessage">{{ ollama_status_msg }}</span>
+        <br>
+        <small>To run with live Llama 3.2: Open terminal and execute <code>ollama serve</code> then <code>ollama pull llama3.2:latest</code>. The analyzer will automatically switch between local LLM and rule-based parsing.</small>
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Input Panel -->
+      <section class="card input-section" id="inputSection">
+        <div class="section-header">
+          <h2>📄 Legal Document Input</h2>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnLoadSample">
+            ⚡ Load Sample Employment Contract
+          </button>
+        </div>
+
+        <form id="analysisForm" enctype="multipart/form-data">
+          <!-- Input Tabs (Upload vs Direct Text) -->
+          <div class="input-tabs">
+            <button type="button" class="tab-btn active" data-tab="uploadTab">Upload Document (PDF / DOCX / TXT)</button>
+            <button type="button" class="tab-btn" data-tab="textTab">Paste Legal Text</button>
+          </div>
+
+          <!-- File Upload Area -->
+          <div class="tab-content active" id="uploadTab">
+            <div class="upload-dropzone" id="dropZone">
+              <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.doc,.txt,.text" class="file-input-hidden">
+              <div class="upload-icon">📂</div>
+              <div class="upload-text">
+                <strong>Click to browse</strong> or drag & drop legal contract here
+              </div>
+              <div class="upload-hint">Supported formats: PDF, DOCX, TXT (Max 32MB)</div>
+              <div class="selected-file-info" id="selectedFileInfo" style="display: none;">
+                <span class="file-badge" id="fileNameBadge">document.pdf</span>
+                <button type="button" class="btn-remove" id="btnRemoveFile">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paste Text Area -->
+          <div class="tab-content" id="textTab">
+            <textarea id="manualText" name="manual_text" class="form-textarea" rows="8" placeholder="Paste full legal contract, agreement, or clauses here..."></textarea>
+          </div>
+
+          <!-- Parameters Grid -->
+          <div class="parameters-grid">
+            <div class="form-group">
+              <label for="documentType">Document Type</label>
+              <select id="documentType" name="document_type" class="form-select">
+                <option value="Employment Agreement" selected>Employment Agreement</option>
+                <option value="Non-Disclosure Agreement (NDA)">Non-Disclosure Agreement (NDA)</option>
+                <option value="Rental / Lease Agreement">Rental / Lease Agreement</option>
+                <option value="Service Agreement">Service Agreement</option>
+                <option value="Sales Agreement">Sales Agreement</option>
+                <option value="Loan Agreement">Loan Agreement</option>
+                <option value="Privacy Policy">Privacy Policy</option>
+                <option value="Terms and Conditions">Terms and Conditions</option>
+                <option value="Business Contract">Business Contract</option>
+                <option value="Legal Notice">Legal Notice</option>
+                <option value="Other">Other / Auto-Detect</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="partiesHint">Known Parties <span class="label-optional">(Optional)</span></label>
+              <input type="text" id="partiesHint" name="parties" class="form-input" placeholder="e.g. ABC Technologies Pvt. Ltd., John Smith">
+            </div>
+
+            <div class="form-group">
+              <label for="analysisType">Analysis Type</label>
+              <select id="analysisType" name="analysis_type" class="form-select">
+                <option value="Complete Analysis" selected>Complete Analysis (All Modules)</option>
+                <option value="Summary">Executive Summary Only</option>
+                <option value="Clause Analysis">Clause & Rights Analysis</option>
+                <option value="Obligation Analysis">Obligations & Financial Terms</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg" id="btnAnalyze">
+              <span class="btn-text">🔍 Analyze Legal Document</span>
+              <span class="spinner" id="analyzeSpinner" style="display: none;"></span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnClearForm">Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Loading State -->
+      <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-card">
+          <div class="loading-spinner"></div>
+          <h3 id="loadingTitle">Analyzing Legal Document...</h3>
+          <p id="loadingSubtitle">Preprocessing document & running local inference with Llama 3.2</p>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <section class="results-section" id="resultsSection" style="display: none;">
+        <!-- Results Top Toolbar -->
+        <div class="results-toolbar">
+          <div class="toolbar-title">
+            <h2>⚖️ Structured Legal Analysis</h2>
+            <span class="engine-badge" id="engineBadge">Llama 3.2 Local Model</span>
+          </div>
+          <div class="toolbar-actions">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnViewRawJson">{' '} View Raw JSON</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnCopyJson">📋 Copy JSON</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDownloadTxt">📄 TXT Report</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDownloadHtml">🌐 HTML Report</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnPrintReport">🖨️ Print</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btnAnalyzeAgain">🔄 Analyze Another</button>
+          </div>
+        </div>
+
+        <!-- Metrics Strip -->
+        <div class="metrics-strip" id="metricsStrip">
+          <div class="metric-item">
+            <span class="metric-label">Document Type</span>
+            <span class="metric-value text-accent" id="metricDocType">-</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Word Count</span>
+            <span class="metric-value" id="metricWordCount">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Character Count</span>
+            <span class="metric-value" id="metricCharCount">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Parties Identified</span>
+            <span class="metric-value text-success" id="metricPartiesCount">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Key Obligations</span>
+            <span class="metric-value text-warning" id="metricObligationsCount">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Key Clauses</span>
+            <span class="metric-value text-purple" id="metricClausesCount">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Important Dates</span>
+            <span class="metric-value text-info" id="metricDatesCount">0</span>
+          </div>
+        </div>
+
+        <!-- Executive Summary Card -->
+        <div class="card executive-summary-card">
+          <div class="card-header">
+            <h3>📑 Executive Document Summary</h3>
+            <span class="badge badge-blue">Abstractive Summarization</span>
+          </div>
+          <p class="summary-content" id="outputSummary">
+            Summary will appear here...
+          </p>
+        </div>
+
+        <!-- 14-Card Analysis Dashboard Grid -->
+        <div class="dashboard-grid">
+          <!-- Card 1: Document Type -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">📄</span><h4>DOCUMENT TYPE</h4></div>
+            <div class="card-body" id="cardDocType">Not specified in the document.</div>
+          </div>
+
+          <!-- Card 2: Parties Involved -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">👥</span><h4>PARTIES INVOLVED</h4></div>
+            <div class="card-body">
+              <ul class="data-list" id="cardParties"><li>Not specified in the document.</li></ul>
+            </div>
+          </div>
+
+          <!-- Card 3: Purpose -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">🎯</span><h4>PURPOSE</h4></div>
+            <div class="card-body" id="cardPurpose">Not specified in the document.</div>
+          </div>
+
+          <!-- Card 4: Key Obligations -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">📝</span><h4>KEY OBLIGATIONS</h4></div>
+            <div class="card-body">
+              <ul class="data-list" id="cardObligations"><li>Not specified in the document.</li></ul>
+            </div>
+          </div>
+
+          <!-- Card 5: Rights -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">🛡️</span><h4>RIGHTS & IP</h4></div>
+            <div class="card-body">
+              <ul class="data-list" id="cardRights"><li>Not specified in the document.</li></ul>
+            </div>
+          </div>
+
+          <!-- Card 6: Payment Terms -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">💳</span><h4>PAYMENT TERMS</h4></div>
+            <div class="card-body" id="cardPayment">Not specified in the document.</div>
+          </div>
+
+          <!-- Card 7: Duration / Term -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">⏳</span><h4>DURATION / TERM</h4></div>
+            <div class="card-body" id="cardDuration">Not specified in the document.</div>
+          </div>
+
+          <!-- Card 8: Termination Conditions -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">🛑</span><h4>TERMINATION CONDITIONS</h4></div>
+            <div class="card-body" id="cardTermination">Not specified in the document.</div>
+          </div>
+
+          <!-- Card 9: Confidentiality -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">🔒</span><h4>CONFIDENTIALITY</h4></div>
+            <div class="card-body" id="cardConfidentiality">Not specified in the document.</div>
+          </div>
+
+          <!-- Card 10: Important Dates -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">📅</span><h4>IMPORTANT DATES</h4></div>
+            <div class="card-body">
+              <ul class="data-list" id="cardDates"><li>Not specified in the document.</li></ul>
+            </div>
+          </div>
+
+          <!-- Card 11: Governing Law -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">⚖️</span><h4>GOVERNING LAW</h4></div>
+            <div class="card-body" id="cardGoverningLaw">Not specified in the document.</div>
+          </div>
+
+          <!-- Card 12: Potentially Important Clauses -->
+          <div class="dash-card">
+            <div class="card-head"><span class="icon">📌</span><h4>POTENTIALLY IMPORTANT CLAUSES</h4></div>
+            <div class="card-body">
+              <div class="clause-badges" id="cardClauses">
+                <span class="badge">None</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clause Distribution & Compliance Overview -->
+        <div class="card distribution-card">
+          <div class="card-header">
+            <h3>📊 Clause Distribution & Compliance Overview</h3>
+            <span class="badge badge-purple">Automated Check</span>
+          </div>
+          <div class="distribution-grid" id="distributionGrid">
+            <!-- Populated via script.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Raw JSON Modal -->
+      <div class="modal" id="jsonModal" style="display: none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Structured JSON Output</h3>
+            <button type="button" class="btn-close" id="btnCloseJsonModal">✕</button>
+          </div>
+          <div class="modal-body">
+            <pre class="json-code" id="rawJsonCode"></pre>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnModalCopy">Copy JSON</button>
+            <button type="button" class="btn btn-primary" id="btnModalClose">Close</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Legal Disclaimer Footer -->
+    <footer class="app-footer">
+      <div class="disclaimer-box">
+        <span class="disclaimer-icon">⚠️</span>
+        <div class="disclaimer-text">
+          <strong>LEGAL DISCLAIMER:</strong> This tool provides automated document analysis for educational and informational purposes only. It is not legal advice and should not replace consultation with a qualified legal professional.
+        </div>
+      </div>
+      <div class="footer-meta">
+        <span>Experiment 5: Automated Legal Document Analyzer</span> &bull;
+        <span>Zero Cloud API / Local Inference (Ollama)</span> &bull;
+        <span>Academic Year 2026</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

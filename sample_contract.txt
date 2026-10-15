@@ -1,0 +1,42 @@
+EMPLOYMENT AGREEMENT
+
+This Employment Agreement (the "Agreement") is entered into on 01-07-2026, by and between:
+
+PARTIES:
+1. ABC Technologies Pvt. Ltd., a private limited company incorporated under the laws of India, having its registered office at Tech Park, Bangalore, India (hereinafter referred to as the "Employer" or the "Company").
+AND
+2. Mr. John Smith, residing at 123 Elm Street, Bangalore, India (hereinafter referred to as the "Employee").
+
+1. PURPOSE
+The purpose of this Agreement is to outline the terms and conditions of employment for John Smith as a Senior Software Engineer with ABC Technologies Pvt. Ltd.
+
+2. DURATION / TERM
+This Agreement shall be effective for a duration of 12 months, commencing from the Start Date of 01-07-2026, unless terminated earlier in accordance with the provisions hereof.
+
+3. KEY OBLIGATIONS
+(a) The Employee shall perform all assigned duties diligently, efficiently, and in compliance with company policies and instructions given by management.
+(b) The Employee must maintain strict confidentiality regarding all company trade secrets, source code, client records, and proprietary data.
+(c) The Employee shall devote full working time and attention exclusively to the business of the Company.
+
+4. RIGHTS & INTELLECTUAL PROPERTY
+Any inventions, designs, code, software, documentation, or intellectual property created, developed, or conceived by the Employee during the course of employment shall belong solely and exclusively to ABC Technologies Pvt. Ltd. The Company holds all rights, title, and interest therein.
+
+5. PAYMENT TERMS & COMPENSATION
+The Company shall pay the Employee a monthly salary of ₹50,000 (Fifty Thousand Rupees), payable on or before the last working day of each calendar month via direct bank transfer, subject to statutory tax deductions.
+
+6. TERMINATION CONDITIONS
+Either party may terminate this Agreement by providing 30 days written notice to the other party. The Company reserves the right to terminate employment immediately without notice in the event of gross misconduct, breach of confidentiality, or fraud.
+
+7. CONFIDENTIALITY
+The Employee agrees that during and after the period of employment, they shall not disclose, publish, or disseminate any proprietary or confidential information belonging to the Company or its clients to any unauthorized third party without prior written authorization.
+
+8. DISPUTE RESOLUTION & GOVERNING LAW
+This Agreement shall be governed by and construed in accordance with the applicable laws of India. Any disputes arising out of or in connection with this Agreement shall be referred to arbitration in Bangalore in accordance with the Arbitration and Conciliation Act.
+
+IN WITNESS WHEREOF, the parties hereto have executed this Employment Agreement as of 01-07-2026.
+
+For ABC Technologies Pvt. Ltd.
+Authorized Signatory
+
+Employee:
+John Smith
